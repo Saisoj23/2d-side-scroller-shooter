@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5066588858523507299}
   m_Layer: 0
   m_Name: Ground3
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -70,7 +70,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: ff4ff9b590b8ab54ebc5af9813295df6, type: 3}
-  m_Color: {r: 0.21176471, g: 0.63529414, b: 1, a: 1}
+  m_Color: {r: 1, g: 0.5803922, b: 0.12156863, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

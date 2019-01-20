@@ -4,14 +4,29 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    float hMovement;
+
+    Rigidbody2D rb;
+
+    [Header("Movemenet")]
+    public float speed;
+    public float aceleration;
+    [Header("Jump and Gravity")]
+    public float gravity;
+    public float jumpPower;
+    public float JumpTime;
+    public float JumpAceleration;
+    void Awake()
     {
-        
+        rb = GetComponent<Rigidbody2D>();
     }
 
-    // Update is called once per frame
     void Update()
+    {
+        hMovement = Input.GetAxisRaw("Horizontal");
+    }
+
+    void FixedUpdate()
     {
         
     }

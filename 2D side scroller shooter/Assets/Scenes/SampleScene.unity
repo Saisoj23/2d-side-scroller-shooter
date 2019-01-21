@@ -10623,6 +10623,36 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 367610906994654714, guid: 5b05f582a01052a46ad4276dc9df3315,
+        type: 3}
+      propertyPath: gravity
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 367610906994654714, guid: 5b05f582a01052a46ad4276dc9df3315,
+        type: 3}
+      propertyPath: jumpSpeed
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 367610906994654714, guid: 5b05f582a01052a46ad4276dc9df3315,
+        type: 3}
+      propertyPath: jumpTime
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 367610906994654714, guid: 5b05f582a01052a46ad4276dc9df3315,
+        type: 3}
+      propertyPath: jumpAceleration
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 367610906994654714, guid: 5b05f582a01052a46ad4276dc9df3315,
+        type: 3}
+      propertyPath: jumpDesaceleration
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 367610906994654714, guid: 5b05f582a01052a46ad4276dc9df3315,
+        type: 3}
+      propertyPath: groundcheckDistance
+      value: 0.06
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5b05f582a01052a46ad4276dc9df3315, type: 3}
 --- !u!4 &656585760593546064 stripped

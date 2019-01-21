@@ -15,14 +15,20 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D rb;
     Transform rayL;
     Transform rayR;
+    Transform rayUL;
+    Transform rayUR;
     RaycastHit2D hitL;
     RaycastHit2D hitR;
+    RaycastHit2D hitUL;
+    RaycastHit2D hitUR;
 
     [Header("Movemenet")]
     public float movementSpeed;
     public float movementAceleration;
     public float movementDesaceleracion;
     public float movementSensivility;
+    public float aMultiplierOnAir;
+    public float dMultiplierOnAir;
     public Vector2 maxWalkAngle;
     [Header("Jump and Gravity")]
     public float gravity;
@@ -36,6 +42,8 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         rayL = transform.Find("RayL");
         rayR = transform.Find("RayR");
+        rayUL = transform.Find("RayUL");
+        rayUR = transform.Find("RayUR");
         playerLayer = LayerMask.GetMask("Player");
     }
 
@@ -62,6 +70,8 @@ public class PlayerController : MonoBehaviour
         //GrounCheck
         hitL = Physics2D.Raycast(rayL.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
         hitR = Physics2D.Raycast(rayR.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
+        hitUL = Physics2D.Raycast(rayUL.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer);
+        hitUR = Physics2D.Raycast(rayUR.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer);
         if (hitL.collider != null || hitR.collider != null)
         {
             grounded = true;
@@ -83,24 +93,53 @@ public class PlayerController : MonoBehaviour
         {
             grounded = false;
         }
-        Debug.Log("left: " + hitL.normal +"  right: " + hitR.normal);
+        if (hitUL.collider != null || hitUR.collider != null)
+        {
+            Debug.Log("choco");
+            if (!grounded)
+            {
+                jumping = false;
+            }
+        }
         //Horizontal Move
         if (Mathf.Abs(hMovement) > movementSensivility)
         {
-            if (hMovement > 0)
+            if (grounded)
             {
-                velocity.x +=  movementAceleration;
-                if (velocity.x < 0)
+                if (hMovement > 0)
                 {
-                    velocity.x += movementDesaceleracion;
+                    velocity.x += movementAceleration;
+                    if (velocity.x < 0)
+                    {
+                        velocity.x += movementDesaceleracion;
+                    }
+                }
+                else
+                {
+                    velocity.x -= movementAceleration;
+                    if (velocity.x > 0)
+                    {
+                        velocity.x -= movementDesaceleracion;
+                    }
                 }
             }
-            else
+            else 
             {
-                velocity.x -= movementAceleration;
-                if (velocity.x > 0)
+                if (hMovement > 0)
                 {
-                    velocity.x -= movementDesaceleracion;
+                    velocity.x += movementAceleration * aMultiplierOnAir;
+                    if (velocity.x < 0)
+                    {
+                        velocity.x += movementDesaceleracion * aMultiplierOnAir;
+                    }
+                }
+                else
+                {
+                    velocity.x -= movementAceleration * aMultiplierOnAir;
+                    if (velocity.x > 0)
+                    {
+                        velocity.x -= movementDesaceleracion * aMultiplierOnAir;
+                    }
                 }
             }
         }
@@ -112,11 +151,11 @@ public class PlayerController : MonoBehaviour
             }
             else if (velocity.x > 0)
             {
-                velocity.x -= movementDesaceleracion;
+                velocity.x -= (grounded) ? movementDesaceleracion : movementDesaceleracion * dMultiplierOnAir;
             }
             else
             {
-                velocity.x += movementDesaceleracion;
+                velocity.x += (grounded) ? movementDesaceleracion : movementDesaceleracion * dMultiplierOnAir;
             }
         }
         //Gravity and Jump

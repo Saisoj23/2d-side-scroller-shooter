@@ -5,12 +5,13 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     bool grounded;
+    bool lastGround;
     bool jumping;
     float jumpingTime;
     float hMovement;
     LayerMask playerLayer;
-    Vector3 velocity;
-    Vector3 groundNormal;
+    Vector2 velocity;
+    Vector2 groundNormal;
 
     Rigidbody2D rb;
     Transform rayL;
@@ -70,56 +71,61 @@ public class PlayerController : MonoBehaviour
         //GrounCheck
         hitL = Physics2D.Raycast(rayL.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
         hitR = Physics2D.Raycast(rayR.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
-        hitUL = Physics2D.Raycast(rayUL.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer);
-        hitUR = Physics2D.Raycast(rayUR.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer);
+        hitUL = Physics2D.Raycast(rayUL.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer, 0,5f);
+        hitUR = Physics2D.Raycast(rayUR.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer, 0,5f);
         if (hitL.collider != null || hitR.collider != null)
         {
             grounded = true;
             velocity.y -= hitL.collider != null ? rayL.position.y + hitL.point.y : rayR.position.y + hitR.point.y;
-            if(hitL.normal != new Vector2(0f, 1f))
+            if (hitR.normal != new Vector2(0f,0f) && hitR.normal != new Vector2(0f, -1f))
             {
-                groundNormal = Quaternion.AngleAxis(90f, hitL.normal).eulerAngles;
+                groundNormal = Vector2.Perpendicular(hitR.normal);
             }
-            else if (hitR.normal != new Vector2(0f, 1f))
+            else if(hitL.normal != new Vector2(0f,0f) && hitL.normal != new Vector2(0f, -1f))
             {
-                groundNormal = Quaternion.AngleAxis(-90f, hitR.normal).eulerAngles;
+                groundNormal = Vector2.Perpendicular(hitL.normal);
             }
             else
             {
-                groundNormal = Vector2.right;
+                groundNormal = new Vector2(1f,0f);
             }
+            groundNormal = new Vector2(Mathf.Abs(groundNormal.x), -groundNormal.y);
         } 
         else
         {
             grounded = false;
         }
+        //Debug.Log(groundNormal);
         if (hitUL.collider != null || hitUR.collider != null)
         {
-            Debug.Log("choco");
             if (!grounded)
             {
                 jumping = false;
             }
         }
         //Horizontal Move
+        if (grounded)
+        {
+            velocity.y = 0f;
+        }
         if (Mathf.Abs(hMovement) > movementSensivility)
         {
             if (grounded)
             {
                 if (hMovement > 0)
                 {
-                    velocity.x += movementAceleration;
+                    velocity += groundNormal * movementAceleration;
                     if (velocity.x < 0)
                     {
-                        velocity.x += movementDesaceleracion;
+                        velocity += groundNormal * movementDesaceleracion;
                     }
                 }
                 else
                 {
-                    velocity.x -= movementAceleration;
+                    velocity -= groundNormal * movementAceleration;
                     if (velocity.x > 0)
                     {
-                        velocity.x -= movementDesaceleracion;
+                        velocity -= groundNormal * movementDesaceleracion;
                     }
                 }
             }
@@ -151,28 +157,41 @@ public class PlayerController : MonoBehaviour
             }
             else if (velocity.x > 0)
             {
-                velocity.x -= (grounded) ? movementDesaceleracion : movementDesaceleracion * dMultiplierOnAir;
+                if (grounded)
+                {
+                    velocity -= groundNormal * movementDesaceleracion;
+                }
+                else
+                {
+                    velocity.x -= movementDesaceleracion * dMultiplierOnAir;
+                } 
             }
             else
             {
-                velocity.x += (grounded) ? movementDesaceleracion : movementDesaceleracion * dMultiplierOnAir;
+                if (grounded)
+                {
+                    velocity += groundNormal * movementDesaceleracion;
+                }
+                else
+                {
+                    velocity.x += movementDesaceleracion * dMultiplierOnAir;
+                }
             }
         }
         //Gravity and Jump
         if (!grounded)
         {
             velocity.y -= jumpDesaceleration;
-            velocity.y = Mathf.Clamp(velocity.y, gravity, jumpSpeed);
-        }
-        else
-        {
-            velocity.y = 0f;
         }
         if (jumping)
             {
                 velocity.y += jumpAceleration;
             }
         velocity.x = Mathf.Clamp(velocity.x, -movementSpeed, movementSpeed);
-        rb.MovePosition(rb.transform.position + (velocity * Time.deltaTime));
+        velocity.y = Mathf.Clamp(velocity.y, gravity, jumpSpeed);
+        Debug.Log(velocity);
+        rb.MovePosition(rb.position + (velocity * Time.deltaTime));
+
+        lastGround = grounded;
     }
 }

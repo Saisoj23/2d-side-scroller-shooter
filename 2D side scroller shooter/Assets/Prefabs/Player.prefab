@@ -59,12 +59,12 @@ MonoBehaviour:
   movementSensivility: 0.1
   aMultiplierOnAir: 0.5
   dMultiplierOnAir: 0.5
-  maxWalkAngle: {x: 0, y: 0}
-  gravity: -15
-  jumpSpeed: 15
+  maxWalkHeight: 0.5
+  gravity: -30
+  jumpSpeed: 20
   jumpTime: 0.25
-  jumpAceleration: 15
-  jumpDesaceleration: 15
+  jumpAceleration: 7
+  jumpDesaceleration: 3
   groundcheckDistance: 0.06
 --- !u!50 &367610906994654692
 Rigidbody2D:

@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     bool grounded;
     bool lastGround;
     bool jumping;
+    bool groundReferenceRight;
     float jumpingTime;
     float hMovement;
     LayerMask playerLayer;
@@ -32,7 +33,8 @@ public class PlayerController : MonoBehaviour
     public float movementSensivility;
     public float aMultiplierOnAir;
     public float dMultiplierOnAir;
-    public Vector2 maxWalkAngle;
+    public float maxWalkHeight;
+    public float sliceMultiplier;
     [Header("Jump and Gravity")]
     public float gravity;
     public float jumpSpeed;
@@ -83,10 +85,12 @@ public class PlayerController : MonoBehaviour
             if (hitR.normal != new Vector2(0f,0f) && hitR.normal != new Vector2(0f, -1f))
             {
                 groundNormal = Vector2.Perpendicular(hitR.normal);
+                groundReferenceRight = true;
             }
             else if(hitL.normal != new Vector2(0f,0f) && hitL.normal != new Vector2(0f, -1f))
             {
                 groundNormal = Vector2.Perpendicular(hitL.normal);
+                groundReferenceRight = false;
             }
             else
             {
@@ -107,7 +111,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         //Horizontal Move
-        if (Mathf.Abs(hMovement) > movementSensivility)
+        if (Mathf.Abs(hMovement) > movementSensivility && groundNormal.y < maxWalkHeight)
         {
             if (grounded)
             {
@@ -119,7 +123,7 @@ public class PlayerController : MonoBehaviour
                         velocity += groundNormal * movementDesaceleracion;
                     }
                 }
-                else
+                else if (hMovement < 0)
                 {
                     velocity -= groundNormal * movementAceleration;
                     if (velocity.x > 0)
@@ -185,6 +189,22 @@ public class PlayerController : MonoBehaviour
                 velocity.y = 0f;
             }
         }
+        if (groundNormal.y > maxWalkHeight && !groundReferenceRight)
+        {
+            velocity += groundNormal * movementAceleration;
+            if (velocity.x < 0)
+            {
+                velocity += groundNormal * (movementDesaceleracion * -groundNormal.y * sliceMultiplier);
+            }
+        }
+        else if ((groundNormal.y > maxWalkHeight && groundReferenceRight))
+        {
+            velocity -= groundNormal * movementAceleration;
+            if (velocity.x > 0)
+            {
+                velocity -= groundNormal * (movementDesaceleracion * -groundNormal.y * sliceMultiplier);
+            }
+        }
         //Gravity and Jump
         if (!grounded)
         {
@@ -204,7 +224,7 @@ public class PlayerController : MonoBehaviour
         }
         if (jumping)
             {
-                velocity.y += jumpAceleration;
+                velocity.y += jumpAceleration * Mathf.InverseLerp(jumpTime, 0f, jumpingTime);
             }
         velocity.x = Mathf.Clamp(velocity.x, -movementSpeed, movementSpeed);
         velocity.y = Mathf.Clamp(velocity.y, gravity, jumpSpeed);

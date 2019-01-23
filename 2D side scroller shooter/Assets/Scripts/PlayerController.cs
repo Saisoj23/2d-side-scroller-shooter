@@ -150,7 +150,11 @@ public class PlayerController : MonoBehaviour
         }
         else 
         {
-            if (Mathf.Abs(velocity.x) < movementDesaceleracion)
+            if (!grounded && Mathf.Abs(velocity.x) < movementDesaceleracion)
+            {
+                velocity.x = 0f;
+            }
+            else if (grounded && Mathf.Abs(velocity.x) < movementDesaceleracion * groundNormal.x)
             {
                 velocity.x = 0f;
             }
@@ -175,6 +179,10 @@ public class PlayerController : MonoBehaviour
                 {
                     velocity.x += movementDesaceleracion * dMultiplierOnAir;
                 }
+            }
+            if (grounded && velocity.x == 0 && velocity.y != 0)
+            {
+                velocity.y = 0f;
             }
         }
         //Gravity and Jump

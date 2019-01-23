@@ -18,6 +18,8 @@ public class PlayerController : MonoBehaviour
     Transform rayR;
     Transform rayUL;
     Transform rayUR;
+    Transform rayML;
+    Transform rayMR;
     RaycastHit2D hitL;
     RaycastHit2D hitR;
     RaycastHit2D hitUL;
@@ -45,6 +47,8 @@ public class PlayerController : MonoBehaviour
         rayR = transform.Find("RayR");
         rayUL = transform.Find("RayUL");
         rayUR = transform.Find("RayUR");
+        rayML = transform.Find("RayML");
+        rayMR = transform.Find("RayMR");
         playerLayer = LayerMask.GetMask("Player");
     }
 
@@ -76,7 +80,6 @@ public class PlayerController : MonoBehaviour
         if (hitL.collider != null || hitR.collider != null)
         {
             grounded = true;
-            velocity.y -= hitL.collider != null ? rayL.position.y + hitL.point.y : rayR.position.y + hitR.point.y;
             if (hitR.normal != new Vector2(0f,0f) && hitR.normal != new Vector2(0f, -1f))
             {
                 groundNormal = Vector2.Perpendicular(hitR.normal);
@@ -104,10 +107,6 @@ public class PlayerController : MonoBehaviour
             }
         }
         //Horizontal Move
-        if (grounded)
-        {
-            velocity.y = 0f;
-        }
         if (Mathf.Abs(hMovement) > movementSensivility)
         {
             if (grounded)
@@ -182,6 +181,18 @@ public class PlayerController : MonoBehaviour
         if (!grounded)
         {
             velocity.y -= jumpDesaceleration;
+            if (hitL.collider != null && hitL.distance < 0.02f)
+            {
+                velocity.y -= hitL.distance;
+            }
+            else if (hitR.collider != null && hitR.distance < 0.02f)
+            {
+                velocity.y -= hitR.distance;
+            }
+        }
+        else if (!lastGround && grounded)
+        {
+            velocity.y = 0f;
         }
         if (jumping)
             {

@@ -9,11 +9,13 @@ public class PlayerController : MonoBehaviour
     bool lastGround;
     bool jumping;
     bool groundReferenceRight;
+    bool colidingLeft;
+    bool colidingRight;
     float jumpingTime;
     float hotizontalInput;
     float groundDistance;
     float ceilingDistance;
-    float righDistance;
+    float rightDistance;
     float leftDistance;
     LayerMask playerLayer;
     Vector2 velocity;
@@ -81,31 +83,56 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         grounded = GetGround();
-        if (GetCeiling())
-        {
-            jumping = false;
-        }
         if (grounded)
         {
             MovementOnGround();
-            if (groundDistance > 0.02f)
+            if (!lastGround)
             {
-                velocity.y -= groundDistance;
+                velocity.y = 0f;
+                if (groundDistance > 0.02f)
+                {
+                    velocity.y = groundDistance;
+                }
+            }
+            if (GetCeiling())
+            {
+                Debug.Log("Die");
             }
         }
         else 
         {
             MovementOnAir();
-            ApplyGravity();
-
-        }
-        if (!lastGround && grounded)
-        {
-            velocity.y = 0f;
+            velocity.y -= jumpDesaceleration;
+            if (GetCeiling())
+            {
+                jumping = false;
+            }
         }
         if (jumping)
         {
             velocity.y += jumpAceleration * Mathf.InverseLerp(jumpTime, 0f, jumpingTime);
+        }
+        colidingLeft = GetLeftWall();
+        colidingRight = GetRightWall();
+        if (colidingLeft && colidingRight)
+        {
+            Debug.Log("Die");
+        }
+        else if (colidingRight && velocity.x > 0f)
+        {
+            velocity.x = 0f;
+            if (rightDistance > 0.02f)
+            {
+                velocity.x = rightDistance;
+            }
+        }
+        else if (colidingLeft && velocity.x < 0f)
+        {
+            velocity.x = 0f;
+            if (rightDistance > 0.02f)
+            {
+                velocity.x = -rightDistance;
+            }
         }
         velocity.x = Mathf.Clamp(velocity.x, -movementSpeed, movementSpeed);
         velocity.y = Mathf.Clamp(velocity.y, gravity, jumpSpeed);
@@ -262,8 +289,51 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void ApplyGravity()
+    bool GetRightWall()
     {
-        velocity.y -= jumpDesaceleration;
+        bool wallCheck = false;
+        hitR = Physics2D.Raycast(rayUR.position, new Vector2(1f, 0f), groundcheckDistance);
+        if (hitR.collider != null) 
+        {
+            rightDistance = hitR.distance;
+            wallCheck = true;
+        }
+        hitR = Physics2D.Raycast(rayMR.position, new Vector2(1f, 0f), groundcheckDistance);
+        if (hitL.collider != null && hitR.distance < leftDistance) 
+        {
+            rightDistance = hitR.distance;
+            wallCheck = true;
+        }
+        hitR = Physics2D.Raycast(rayR.position, new Vector2(1f, 0f), groundcheckDistance);
+        if (hitR.collider != null && hitR.distance < rightDistance && hitR.normal.y > maxWalkHeight) 
+        {
+            rightDistance = hitR.distance;
+            wallCheck = true;
+        }
+        return wallCheck;
+    }
+
+    bool GetLeftWall()
+    {
+        bool wallCheck = false;
+        hitL = Physics2D.Raycast(rayUL.position, new Vector2(-1f, 0f), groundcheckDistance);
+        if (hitL.collider != null) 
+        {
+            leftDistance = hitL.distance;
+            wallCheck = true;
+        }
+        hitL = Physics2D.Raycast(rayML.position, new Vector2(-1f, 0f), groundcheckDistance);
+        if (hitL.collider != null && hitL.distance < leftDistance) 
+        {
+            leftDistance = hitL.distance;
+            wallCheck = true;
+        }
+        hitL = Physics2D.Raycast(rayL.position, new Vector2(-1f, 0f), groundcheckDistance);
+        if (hitL.collider != null && hitL.distance < leftDistance && hitL.normal.y > maxWalkHeight) 
+        {
+            leftDistance = hitL.distance;
+            wallCheck = true;
+        }
+        return wallCheck;
     }
 }

@@ -4,16 +4,24 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    //variables internas
     bool grounded;
     bool lastGround;
     bool jumping;
     bool groundReferenceRight;
     float jumpingTime;
-    float hMovement;
+    float hotizontalInput;
+    float groundDistance;
+    float ceilingDistance;
+    float righDistance;
+    float leftDistance;
     LayerMask playerLayer;
     Vector2 velocity;
     Vector2 groundNormal;
+    RaycastHit2D hitL;
+    RaycastHit2D hitR;
 
+    //componentes y objetos
     Rigidbody2D rb;
     Transform rayL;
     Transform rayR;
@@ -21,11 +29,8 @@ public class PlayerController : MonoBehaviour
     Transform rayUR;
     Transform rayML;
     Transform rayMR;
-    RaycastHit2D hitL;
-    RaycastHit2D hitR;
-    RaycastHit2D hitUL;
-    RaycastHit2D hitUR;
 
+    //variables publicas
     [Header("Movemenet")]
     public float movementSpeed;
     public float movementAceleration;
@@ -56,7 +61,8 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        hMovement = Input.GetAxisRaw("Horizontal");
+        //input
+        hotizontalInput = Input.GetAxisRaw("Horizontal");
         if (grounded && Input.GetButtonDown("Jump"))
         {
             jumping = true;
@@ -74,120 +80,130 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        //GrounCheck
-        hitL = Physics2D.Raycast(rayL.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
-        hitR = Physics2D.Raycast(rayR.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
-        hitUL = Physics2D.Raycast(rayUL.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer, 0,5f);
-        hitUR = Physics2D.Raycast(rayUR.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer, 0,5f);
+        grounded = GetGround();
+        if (GetCeiling())
+        {
+            jumping = false;
+        }
+        if (grounded)
+        {
+            MovementOnGround();
+            if (groundDistance > 0.02f)
+            {
+                velocity.y -= groundDistance;
+            }
+        }
+        else 
+        {
+            MovementOnAir();
+            ApplyGravity();
+
+        }
+        if (!lastGround && grounded)
+        {
+            velocity.y = 0f;
+        }
+        if (jumping)
+        {
+            velocity.y += jumpAceleration * Mathf.InverseLerp(jumpTime, 0f, jumpingTime);
+        }
+        velocity.x = Mathf.Clamp(velocity.x, -movementSpeed, movementSpeed);
+        velocity.y = Mathf.Clamp(velocity.y, gravity, jumpSpeed);
+        Debug.Log(velocity);
+        rb.MovePosition(rb.position + (velocity * Time.deltaTime));
+
+        lastGround = grounded;
+    }
+
+    bool GetGround()
+    {
+        RaycastHit2D hitL = Physics2D.Raycast(rayL.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
+        RaycastHit2D hitR = Physics2D.Raycast(rayR.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
         if (hitL.collider != null || hitR.collider != null)
         {
             grounded = true;
+            groundNormal = new Vector2(1f,0f);
+            groundReferenceRight = true;
+            groundDistance = hitR.distance;
             if (hitR.normal != new Vector2(0f,0f) && hitR.normal != new Vector2(0f, -1f))
             {
                 groundNormal = Vector2.Perpendicular(hitR.normal);
                 groundReferenceRight = true;
+                groundDistance = hitR.distance;
             }
             else if(hitL.normal != new Vector2(0f,0f) && hitL.normal != new Vector2(0f, -1f))
             {
                 groundNormal = Vector2.Perpendicular(hitL.normal);
                 groundReferenceRight = false;
-            }
-            else
-            {
-                groundNormal = new Vector2(1f,0f);
+                groundDistance = hitL.distance;
             }
             groundNormal = new Vector2(Mathf.Abs(groundNormal.x), -groundNormal.y);
-        } 
+        }
         else
         {
             grounded = false;
+            groundNormal = new Vector2(0f,0f);
+            groundReferenceRight = true;
+            groundDistance = 0f;
         }
-        //Debug.Log(groundNormal);
-        if (hitUL.collider != null || hitUR.collider != null)
+        return grounded;
+    }
+
+    bool GetCeiling()
+    {
+        hitL = Physics2D.Raycast(rayUL.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer, 0,5f);
+        hitR = Physics2D.Raycast(rayUR.position, new Vector2(0f,1f), groundcheckDistance, ~playerLayer, 0,5f);
+        ceilingDistance = 1f;
+        if (hitR.collider != null)
         {
-            if (!grounded)
-            {
-                jumping = false;
-            }
+            ceilingDistance = hitR.distance;
         }
-        //Horizontal Move
-        if (Mathf.Abs(hMovement) > movementSensivility && groundNormal.y < maxWalkHeight)
+        if (hitL.collider != null && hitL.distance < ceilingDistance)
         {
-            if (grounded)
-            {
-                if (hMovement > 0)
-                {
-                    velocity += groundNormal * movementAceleration;
-                    if (velocity.x < 0)
-                    {
-                        velocity += groundNormal * movementDesaceleracion;
-                    }
-                }
-                else if (hMovement < 0)
-                {
-                    velocity -= groundNormal * movementAceleration;
-                    if (velocity.x > 0)
-                    {
-                        velocity -= groundNormal * movementDesaceleracion;
-                    }
-                }
-            }
-            else 
-            {
-                if (hMovement > 0)
-                {
-                    velocity.x += movementAceleration * aMultiplierOnAir;
-                    if (velocity.x < 0)
-                    {
-                        velocity.x += movementDesaceleracion * aMultiplierOnAir;
-                    }
-                }
-                else
-                {
-                    velocity.x -= movementAceleration * aMultiplierOnAir;
-                    if (velocity.x > 0)
-                    {
-                        velocity.x -= movementDesaceleracion * aMultiplierOnAir;
-                    }
-                }
-            }
+            ceilingDistance = hitL.distance;
         }
-        else 
+        return ceilingDistance < 1f;
+    }
+
+    void MovementOnGround()
+    {
+        if (Mathf.Abs(hotizontalInput) > movementSensivility)
         {
-            if (!grounded && Mathf.Abs(velocity.x) < movementDesaceleracion)
+            if (hotizontalInput > 0 && (groundNormal.y < maxWalkHeight || groundReferenceRight))
             {
-                velocity.x = 0f;
-            }
-            else if (grounded && Mathf.Abs(velocity.x) < movementDesaceleracion * groundNormal.x)
-            {
-                velocity.x = 0f;
-            }
-            else if (velocity.x > 0)
-            {
-                if (grounded)
-                {
-                    velocity -= groundNormal * movementDesaceleracion;
-                }
-                else
-                {
-                    velocity.x -= movementDesaceleracion * dMultiplierOnAir;
-                } 
-            }
-            else
-            {
-                if (grounded)
+                velocity += groundNormal * movementAceleration;
+                if (velocity.x < 0)
                 {
                     velocity += groundNormal * movementDesaceleracion;
                 }
-                else
+            }
+            else if (hotizontalInput < 0 && (groundNormal.y < maxWalkHeight || !groundReferenceRight))
+            {
+                velocity -= groundNormal * movementAceleration;
+                if (velocity.x > 0)
                 {
-                    velocity.x += movementDesaceleracion * dMultiplierOnAir;
+                    velocity -= groundNormal * movementDesaceleracion;
                 }
             }
-            if (grounded && velocity.x == 0 && velocity.y != 0)
+        }
+        else
+        {
+            if (Mathf.Abs(velocity.x) < movementDesaceleracion * groundNormal.x)
             {
-                velocity.y = 0f;
+                velocity.x = 0f;
             }
+            if (velocity.x > 0)
+            {
+                velocity -= groundNormal * movementDesaceleracion;
+            }
+            else if (velocity.x < 0)
+            {
+                velocity += groundNormal * movementDesaceleracion;
+            }
+        }
+        if (velocity.x == 0 && velocity.y != 0)
+        {
+            velocity.y = 0f;
         }
         if (groundNormal.y > maxWalkHeight && !groundReferenceRight)
         {
@@ -205,32 +221,49 @@ public class PlayerController : MonoBehaviour
                 velocity -= groundNormal * (movementDesaceleracion * -groundNormal.y * sliceMultiplier);
             }
         }
-        //Gravity and Jump
-        if (!grounded)
-        {
-            velocity.y -= jumpDesaceleration;
-            if (hitL.collider != null && hitL.distance < 0.02f)
-            {
-                velocity.y -= hitL.distance;
-            }
-            else if (hitR.collider != null && hitR.distance < 0.02f)
-            {
-                velocity.y -= hitR.distance;
-            }
-        }
-        else if (!lastGround && grounded)
-        {
-            velocity.y = 0f;
-        }
-        if (jumping)
-            {
-                velocity.y += jumpAceleration * Mathf.InverseLerp(jumpTime, 0f, jumpingTime);
-            }
-        velocity.x = Mathf.Clamp(velocity.x, -movementSpeed, movementSpeed);
-        velocity.y = Mathf.Clamp(velocity.y, gravity, jumpSpeed);
-        Debug.Log(velocity);
-        rb.MovePosition(rb.position + (velocity * Time.deltaTime));
+    }
 
-        lastGround = grounded;
+    void MovementOnAir()
+    {
+        if (Mathf.Abs(hotizontalInput) > movementSensivility && groundNormal.y < maxWalkHeight)
+        {
+            if (hotizontalInput > 0)
+            {
+                velocity.x += movementAceleration * aMultiplierOnAir;
+                if (velocity.x < 0)
+                {
+                    velocity.x += movementDesaceleracion * aMultiplierOnAir;
+                }
+            }
+            else
+            {
+                velocity.x -= movementAceleration * aMultiplierOnAir;
+                if (velocity.x > 0)
+                {
+                    velocity.x -= movementDesaceleracion * aMultiplierOnAir;
+                }
+            }
+        }
+        else
+        {
+            
+            if (Mathf.Abs(velocity.x) < movementDesaceleracion)
+            {
+                velocity.x = 0f;
+            }
+            if (velocity.x > 0)
+            {
+                velocity.x -= movementDesaceleracion * dMultiplierOnAir;
+            }
+            else if (velocity.x < 0)
+            {
+                velocity.x += movementDesaceleracion * dMultiplierOnAir;
+            }
+        }
+    }
+
+    void ApplyGravity()
+    {
+        velocity.y -= jumpDesaceleration;
     }
 }

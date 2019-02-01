@@ -25,8 +25,8 @@ public class PlayerController : MonoBehaviour
 
     //componentes y objetos
     Rigidbody2D rb;
-    Transform rayL;
-    Transform rayR;
+    Transform rayDL;
+    Transform rayDR;
     Transform rayUL;
     Transform rayUR;
     Transform rayML;
@@ -52,8 +52,8 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        rayL = transform.Find("RayL");
-        rayR = transform.Find("RayR");
+        rayDL = transform.Find("RayL");
+        rayDR = transform.Find("RayR");
         rayUL = transform.Find("RayUL");
         rayUR = transform.Find("RayUR");
         rayML = transform.Find("RayML");
@@ -136,8 +136,6 @@ public class PlayerController : MonoBehaviour
         }
         velocity.x = Mathf.Clamp(velocity.x, -movementSpeed, movementSpeed);
         velocity.y = Mathf.Clamp(velocity.y, gravity, jumpSpeed);
-        Debug.Log(velocity);
-        Debug.Log(colidingLeft + " left " + colidingRight + " right ");
         rb.MovePosition(rb.position + (velocity * Time.deltaTime));
 
         lastGround = grounded;
@@ -145,8 +143,8 @@ public class PlayerController : MonoBehaviour
 
     bool GetGround()
     {
-        RaycastHit2D hitL = Physics2D.Raycast(rayL.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
-        RaycastHit2D hitR = Physics2D.Raycast(rayR.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
+        RaycastHit2D hitL = Physics2D.Raycast(rayDL.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
+        RaycastHit2D hitR = Physics2D.Raycast(rayDR.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
         if (hitL.collider != null || hitR.collider != null)
         {
             grounded = true;
@@ -305,7 +303,7 @@ public class PlayerController : MonoBehaviour
             rightDistance = hitR.distance;
             wallCheck = true;
         }
-        hitR = Physics2D.Raycast(rayR.position, new Vector2(1f, 0f), groundcheckDistance, ~playerLayer);
+        hitR = Physics2D.Raycast(rayDR.position, new Vector2(1f, 0f), groundcheckDistance, ~playerLayer);
         if (hitR.collider != null && hitR.distance < rightDistance && hitR.normal.y > maxWalkHeight) 
         {
             rightDistance = hitR.distance;
@@ -329,7 +327,7 @@ public class PlayerController : MonoBehaviour
             leftDistance = hitL.distance;
             wallCheck = true;
         }
-        hitL = Physics2D.Raycast(rayL.position, new Vector2(-1f, 0f), groundcheckDistance, ~playerLayer);
+        hitL = Physics2D.Raycast(rayDL.position, new Vector2(-1f, 0f), groundcheckDistance, ~playerLayer);
         if (hitL.collider != null && hitL.distance < leftDistance && hitL.normal.y > maxWalkHeight) 
         {
             leftDistance = hitL.distance;

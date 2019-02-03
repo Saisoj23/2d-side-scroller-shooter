@@ -9,11 +9,13 @@ public class PlayerController : MonoBehaviour
     bool lastGround;
     bool jumping;
     bool groundReferenceRight;
+    bool colidingLeft;
+    bool colidingRight;
     float jumpingTime;
     float hotizontalInput;
     float groundDistance;
     float ceilingDistance;
-    float righDistance;
+    float rightDistance;
     float leftDistance;
     LayerMask playerLayer;
     Vector2 velocity;
@@ -23,8 +25,8 @@ public class PlayerController : MonoBehaviour
 
     //componentes y objetos
     Rigidbody2D rb;
-    Transform rayL;
-    Transform rayR;
+    Transform rayDL;
+    Transform rayDR;
     Transform rayUL;
     Transform rayUR;
     Transform rayML;
@@ -50,8 +52,8 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        rayL = transform.Find("RayL");
-        rayR = transform.Find("RayR");
+        rayDL = transform.Find("RayL");
+        rayDR = transform.Find("RayR");
         rayUL = transform.Find("RayUL");
         rayUR = transform.Find("RayUR");
         rayML = transform.Find("RayML");
@@ -80,28 +82,53 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        grounded = GetGround();
-        if (GetCeiling())
+        colidingLeft = GetLeftWall();
+        colidingRight = GetRightWall();
+        if (colidingLeft && colidingRight)
         {
-            jumping = false;
+            Debug.Log("Die");
         }
+        else if (colidingRight && velocity.x > 0f)
+        {
+            velocity.x = 0f;
+            if (rightDistance > 0.02f)
+            {
+                velocity.x = rightDistance;
+            }
+        }
+        else if (colidingLeft && velocity.x < 0f)
+        {
+            velocity.x = 0f;
+            if (rightDistance > 0.02f)
+            {
+                velocity.x = -rightDistance;
+            }
+        }
+        grounded = GetGround();
         if (grounded)
         {
             MovementOnGround();
-            if (groundDistance > 0.02f)
+            if (!lastGround)
             {
-                velocity.y -= groundDistance;
+                velocity.y = 0f;
+                if (groundDistance > 0.02f)
+                {
+                    velocity.y = groundDistance;
+                }
+            }
+            if (GetCeiling())
+            {
+                Debug.Log("Die");
             }
         }
         else 
         {
             MovementOnAir();
-            ApplyGravity();
-
-        }
-        if (!lastGround && grounded)
-        {
-            velocity.y = 0f;
+            velocity.y -= jumpDesaceleration;
+            if (GetCeiling())
+            {
+                jumping = false;
+            }
         }
         if (jumping)
         {
@@ -109,7 +136,6 @@ public class PlayerController : MonoBehaviour
         }
         velocity.x = Mathf.Clamp(velocity.x, -movementSpeed, movementSpeed);
         velocity.y = Mathf.Clamp(velocity.y, gravity, jumpSpeed);
-        Debug.Log(velocity);
         rb.MovePosition(rb.position + (velocity * Time.deltaTime));
 
         lastGround = grounded;
@@ -117,8 +143,8 @@ public class PlayerController : MonoBehaviour
 
     bool GetGround()
     {
-        RaycastHit2D hitL = Physics2D.Raycast(rayL.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
-        RaycastHit2D hitR = Physics2D.Raycast(rayR.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
+        RaycastHit2D hitL = Physics2D.Raycast(rayDL.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
+        RaycastHit2D hitR = Physics2D.Raycast(rayDR.position, new Vector2(0f,-1f), groundcheckDistance, ~playerLayer);
         if (hitL.collider != null || hitR.collider != null)
         {
             grounded = true;
@@ -169,7 +195,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Mathf.Abs(hotizontalInput) > movementSensivility)
         {
-            if (hotizontalInput > 0 && (groundNormal.y < maxWalkHeight || groundReferenceRight))
+            if (hotizontalInput > 0 && (groundNormal.y < maxWalkHeight || groundReferenceRight) && !colidingRight)
             {
                 velocity += groundNormal * movementAceleration;
                 if (velocity.x < 0)
@@ -177,7 +203,7 @@ public class PlayerController : MonoBehaviour
                     velocity += groundNormal * movementDesaceleracion;
                 }
             }
-            else if (hotizontalInput < 0 && (groundNormal.y < maxWalkHeight || !groundReferenceRight))
+            else if (hotizontalInput < 0 && (groundNormal.y < maxWalkHeight || !groundReferenceRight) && !colidingLeft)
             {
                 velocity -= groundNormal * movementAceleration;
                 if (velocity.x > 0)
@@ -262,8 +288,51 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void ApplyGravity()
+    bool GetRightWall()
     {
-        velocity.y -= jumpDesaceleration;
+        bool wallCheck = false;
+        hitR = Physics2D.Raycast(rayUR.position, new Vector2(1f, 0f), groundcheckDistance, ~playerLayer);
+        if (hitR.collider != null) 
+        {
+            rightDistance = hitR.distance;
+            wallCheck = true;
+        }
+        hitR = Physics2D.Raycast(rayMR.position, new Vector2(1f, 0f), groundcheckDistance, ~playerLayer);
+        if (hitR.collider != null && hitR.distance < leftDistance) 
+        {
+            rightDistance = hitR.distance;
+            wallCheck = true;
+        }
+        hitR = Physics2D.Raycast(rayDR.position, new Vector2(1f, 0f), groundcheckDistance, ~playerLayer);
+        if (hitR.collider != null && hitR.distance < rightDistance && hitR.normal.y > maxWalkHeight) 
+        {
+            rightDistance = hitR.distance;
+            wallCheck = true;
+        }
+        return wallCheck;
+    }
+
+    bool GetLeftWall()
+    {
+        bool wallCheck = false;
+        hitL = Physics2D.Raycast(rayUL.position, new Vector2(-1f, 0f), groundcheckDistance, ~playerLayer);
+        if (hitL.collider != null) 
+        {
+            leftDistance = hitL.distance;
+            wallCheck = true;
+        }
+        hitL = Physics2D.Raycast(rayML.position, new Vector2(-1f, 0f), groundcheckDistance, ~playerLayer);
+        if (hitL.collider != null && hitL.distance < leftDistance) 
+        {
+            leftDistance = hitL.distance;
+            wallCheck = true;
+        }
+        hitL = Physics2D.Raycast(rayDL.position, new Vector2(-1f, 0f), groundcheckDistance, ~playerLayer);
+        if (hitL.collider != null && hitL.distance < leftDistance && hitL.normal.y > maxWalkHeight) 
+        {
+            leftDistance = hitL.distance;
+            wallCheck = true;
+        }
+        return wallCheck;
     }
 }

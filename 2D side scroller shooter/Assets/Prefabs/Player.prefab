@@ -28,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 367610906994654689}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: -3.25, z: 0}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1.5, z: 1}
   m_Children:
   - {fileID: 367610907650681610}
@@ -235,6 +235,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3009850484064073803}
   - component: {fileID: 4267685826849864111}
+  - component: {fileID: 1808307940344129651}
   m_Layer: 8
   m_Name: Groundcheck
   m_TagString: Untagged
@@ -272,3 +273,15 @@ CircleCollider2D:
   m_Offset: {x: 0, y: -0.1666666}
   serializedVersion: 2
   m_Radius: 0.33334
+--- !u!114 &1808307940344129651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7125787605815044844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78eb173a9f15a4846a0bf366df312635, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

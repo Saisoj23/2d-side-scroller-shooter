@@ -4,8 +4,21 @@ using UnityEngine;
 
 public class GroundCheck : MonoBehaviour
 {
-    void OnCollisionEnter(Collision col)
+
+    CharacterController chara;
+
+    void Awake ()
     {
-        Debug.Log("ground");
+        chara = GetComponentInParent<CharacterController>();
+    }
+
+    void OnCollisionStay2D (Collision2D col)
+    {
+        chara.grounded = true;
+    }
+
+    void OnCollisionExit2D (Collision2D col)
+    {
+        chara.grounded = false;
     }
 }

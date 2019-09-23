@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
 {   
     //can
     bool canJump;
-    bool canDash;
+    bool canDash = true;
 
     //doing
     bool jumping;
@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour
 
     //colisions
     bool grounded;
+    bool lastGrounded;
 
     bool ceiling;
 
@@ -41,6 +42,7 @@ public class PlayerController : MonoBehaviour
     float hInput;
     float vInput;
     int lastSide;
+    Vector2 direccion;
 
     int framesJumping;
 
@@ -73,14 +75,23 @@ public class PlayerController : MonoBehaviour
     public float secondJumpingMaxTime;
     public float jumpingReleaseStop;
     public float preGroundTime;
+    public float coyoteTime;
     public float wallJumpTime;
     public float wallJumpMultiplier;
 
     Rigidbody2D rb;
+    SpriteRenderer spr;
+    BoxCollider2D col;
+    public ParticleSystem groundPcle;
+    public ParticleSystem wallPcle;
+    TrailRenderer trl;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        spr = GetComponentInChildren<SpriteRenderer>();
+        trl = GetComponentInChildren<TrailRenderer>();
+        col = GetComponent<BoxCollider2D>();
     }
 
     
@@ -130,6 +141,14 @@ public class PlayerController : MonoBehaviour
         {
             vInput = 0;
         }
+
+        if (dashing)
+        {
+            vInput = direccion.y;
+            hInput = direccion.x;
+        }
+
+        direccion = new Vector2 (hInput, vInput).normalized;
 
         //obtener salto
         if (Input.GetButtonDown("Jump") && !dashing)
@@ -187,6 +206,7 @@ public class PlayerController : MonoBehaviour
         {
             if (canDash && !hasDash && firstDashPress)
             {
+                trl.emitting = true;
                 dashing = true;
                 hasDash = true;
                 dashingTime = 0f;
@@ -198,12 +218,14 @@ public class PlayerController : MonoBehaviour
             {
                 dashing = false;
                 firstDashPress = false;
+                trl.emitting = false;
             }
         }
         else if (Input.GetButtonUp("Fire3") && dash)
         {
             dashing = false;
             firstDashPress = false;
+            trl.emitting = false;
         }
     }
 
@@ -224,6 +246,17 @@ public class PlayerController : MonoBehaviour
         {
             grounded = false;
         }
+
+        if (!lastGrounded && grounded)
+        {
+            groundPcle.Play(false);
+        }
+        else if (lastGrounded && !grounded)
+        {
+            groundPcle.Stop(false);
+        }
+
+        lastGrounded = grounded;
 
         //verificar techo
         if (rb.Cast(Vector2.up, hits, castDistance) > 0)
@@ -276,7 +309,7 @@ public class PlayerController : MonoBehaviour
         }
         else 
         {
-            canJump = false;
+            StartCoroutine("CancelCoyote");
         }
 
         //aplicar movimiento
@@ -287,9 +320,22 @@ public class PlayerController : MonoBehaviour
             velocity.x *= simulatedFriccion;
         }
 
+        if (wallPcle.transform.localPosition.x > 0 && velocity.x < 0)
+        {
+            wallPcle.transform.localPosition = new Vector3(-0.5f, 0f, 0);
+        }
+        if (wallPcle.transform.localPosition.x < 0 && velocity.x > 0)
+        {
+            wallPcle.transform.localPosition = new Vector3(0.5f, 0f, 0);
+        }
+
         //aplicar deslizamiento
         if (sliding)
         {
+            if (!lastSliding)
+            {
+                wallPcle.Play();
+            }
             lastSlide = wall;
             lastSliding = true;
             canJump = true;
@@ -301,6 +347,10 @@ public class PlayerController : MonoBehaviour
         }       
         else 
         {
+            if (lastSliding)
+            {
+                wallPcle.Stop();
+            }
             lastSliding = false;
             rb.gravityScale = 1;
         }
@@ -328,19 +378,29 @@ public class PlayerController : MonoBehaviour
         //aplicar dash
         if (dashing)
         {
-            transform.localScale = new Vector3(1,0.5f,1);
+            //transform.localScale = new Vector3(1,0.5f,1);
+            //transform.localEulerAngles = new Vector3(0f, 0f, Vector2.SignedAngle(new Vector2(0,0), direccion));
             jumping = false;
             secondJumping = false;
-            velocity.y = 0;
+            //velocity.y = 0;
             rb.gravityScale = 0;
-            velocity.x = dashSpeed * lastSide;
+            //velocity.x = dashSpeed * lastSide;
+            if (direccion == Vector2.zero)
+            {
+                velocity.x = dashSpeed * lastSide;
+            }
+            else
+            {
+                velocity = dashSpeed * direccion;
+            }
             dashingTime += Time.deltaTime;
             framesJumping++;
         }
         else 
         {
             rb.gravityScale = 1;
-            transform.localScale = new Vector3(1,1,1);
+            //transform.localScale = new Vector3(1,1,1);
+            //transform.localEulerAngles = new Vector3(0,0,0);
         }
 
         //aplicar velocidad
@@ -358,6 +418,12 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(preGroundTime);
         firstDashPress = false;
+    }
+
+    IEnumerator CancelCoyote ()
+    {
+        yield return new WaitForSeconds(coyoteTime);
+        canJump = false;
     }
 
     IEnumerator CancelWallJump ()

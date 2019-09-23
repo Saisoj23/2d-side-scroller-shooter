@@ -10,10 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: Block
+  m_Name: tileset 1_5
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 21300000, guid: 0b78c8e21c87d534fa3aa494c13462d0, type: 3}
-  m_Color: {r: 1, g: 0.57691026, b: 0.19339621, a: 1}
+  m_Sprite: {fileID: -7642695013803092085, guid: b371b2e52569ecc41b70c7b9194bc2be,
+    type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
     e01: 0

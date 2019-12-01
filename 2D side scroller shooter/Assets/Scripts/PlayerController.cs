@@ -79,19 +79,26 @@ public class PlayerController : MonoBehaviour
     public float wallJumpTime;
     public float wallJumpMultiplier;
 
+    [Header("Level")]
+    public Vector2 startPosition;
+
     Rigidbody2D rb;
     SpriteRenderer spr;
     BoxCollider2D col;
-    public ParticleSystem groundPcle;
+    ParticleSystem groundPcle;
     public ParticleSystem wallPcle;
     TrailRenderer trl;
+    Animator anim;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<BoxCollider2D>();
+        groundPcle = GetComponent<ParticleSystem>();
+        //wallPcle = GetComponentInChildren<ParticleSystem>();
         spr = GetComponentInChildren<SpriteRenderer>();
         trl = GetComponentInChildren<TrailRenderer>();
-        col = GetComponent<BoxCollider2D>();
+        anim = GetComponent<Animator>();
     }
 
     
@@ -233,6 +240,11 @@ public class PlayerController : MonoBehaviour
     {
         //recuperar velocidad
         Vector2 velocity = rb.velocity;
+
+        if (Mathf.Abs(velocity.x) < 0.01f)
+        {
+            velocity.x = 0f;
+        }
 
         //verificar suelo
         RaycastHit2D[] hits = new RaycastHit2D[3];
@@ -403,9 +415,32 @@ public class PlayerController : MonoBehaviour
             //transform.localEulerAngles = new Vector3(0,0,0);
         }
 
+        //animaciones y flip
+        anim.SetFloat("HSpeed", Mathf.Abs(velocity.x));
+        anim.SetFloat("VSpeed", velocity.y);
+        anim.SetBool("Grounded", grounded);
+        anim.SetBool("Sliding", sliding);
+        anim.SetBool("Dashing", dashing);
+        if (hInput > 0)
+        {
+            spr.flipX = false;
+        }
+        else if (hInput < 0)
+        {
+            spr.flipX = true;
+        }
+
         //aplicar velocidad
         rb.velocity = velocity;
-        Debug.Log(dashing);
+        Debug.Log(velocity.x);
+    }
+
+    void OnTriggerEnter2D (Collider2D col)
+    {
+        if (col.CompareTag("Damage"))
+        {
+            rb.transform.position = startPosition;
+        }
     }
 
     IEnumerator CancelFirstJump ()

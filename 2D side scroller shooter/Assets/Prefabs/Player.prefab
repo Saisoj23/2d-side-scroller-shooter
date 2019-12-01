@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3571266958367641028}
   - component: {fileID: 5087293371666350535}
   - component: {fileID: 628394209905438913}
+  - component: {fileID: 5664856762436486066}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -312,7 +313,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 0.7058824, g: 0.1254902, b: 0.16470589, a: 1}
+      maxColor: {r: 0.047058824, g: 0.18039216, b: 0.26666668, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -4843,6 +4844,25 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
+--- !u!95 &5664856762436486066
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 751263285586208007}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 374c8af4957acd5439e0e90ed82da3be, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &2129096815239301648
 GameObject:
   m_ObjectHideFlags: 0
@@ -4912,7 +4932,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: 464bfc07c3a4262499597c50a736ca73, type: 3}
+  m_Sprite: {fileID: 4334783836991956000, guid: 5a2e23fa57f730146ad46ccc148f9742,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -5208,7 +5229,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 0.7058824, g: 0.1254902, b: 0.16470589, a: 1}
+      maxColor: {r: 0.047058824, g: 0.18039216, b: 0.26666668, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -9776,8 +9797,8 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.7058824, g: 0.1254902, b: 0.16470589, a: 1}
-      key1: {r: 0.7058824, g: 0.1254902, b: 0.16470589, a: 0.46666667}
+      key0: {r: 0.047058824, g: 0.18039216, b: 0.26666668, a: 1}
+      key1: {r: 0.047058824, g: 0.18039216, b: 0.26666668, a: 0.46666667}
       key2: {r: 0, g: 0, b: 0, a: 1}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
